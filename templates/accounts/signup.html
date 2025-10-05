@@ -1,0 +1,55 @@
+
+{% extends 'base/main.html' %}
+{% block content %}
+  <div class="card shadow-lg signup-card">
+    <div class="card-body">
+      <h3 class="text-center mb-4 fw-bold">Create an Account</h3>
+
+      <!-- Signup form -->
+  <form method="POST">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="mb-3">{{ form.username }}</div>
+    <div class="mb-3">{{ form.email }}</div>
+    <div class="mb-3">{{ form.password1 }}</div>
+    <div class="mb-3">{{ form.password2 }}</div>
+
+    <div class="d-grid">
+      <button type="submit" class="btn btn-success btn-custom">Sign Up</button>
+    </div>
+
+    {% if form.errors %}
+      <div class="alert alert-danger mt-2">
+        {{ form.errors }}
+      </div>
+    {% endif %}
+</form>
+
+
+      <!-- Divider -->
+      <div class="divider">OR</div>
+
+      <!-- Social signup -->
+      <div class="d-grid gap-2">
+        <a href="#" class="btn btn-outline-danger social-btn">
+          <i class="bi bi-google"></i> Sign up with Google
+        </a>
+        <a href="#" class="btn btn-outline-primary social-btn">
+          <i class="bi bi-facebook"></i> Sign up with Facebook
+        </a>
+        <a href="#" class="btn btn-outline-dark social-btn">
+          <i class="bi bi-github"></i> Sign up with GitHub
+        </a>
+      </div>
+
+      <div class="text-center mt-3">
+        <small class="text-muted">Already have an account? <a href="{% url 'login' %}" class="fw-bold">Login</a></small>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+ 

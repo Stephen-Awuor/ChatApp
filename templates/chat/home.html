@@ -1,0 +1,86 @@
+{% load static %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/chat.css' %}">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+<!-- Top Navbar -->
+<nav class="navbar">
+  <span class="brand">MyChat</span>
+  <div class="nav-links">
+    <a href="{% url 'profile' %}">Account</a>
+    <a href="{% url 'logout' %}">Logout</a>
+  </div>
+</nav>
+
+<div class="chat-container">
+  <!-- Sidebar with Chat List -->
+  <div class="sidebar">
+    {% if chats %}
+      {% for chat in chats %}
+        <div class="chat-list-item" onclick="window.location='{% url 'chat_room' chat.id %}'">
+          <img src="{{ chat.user.avatar.url|default:'https://i.pravatar.cc/40' }}" class="avatar" alt="{{ chat.user.username }}">
+          <div class="chat-info">
+            <strong>{{ chat.user.username }}</strong><br>
+            <small>{{ chat.last_message|truncatewords:6 }}</small>
+          </div>
+          <div class="chat-meta">
+            <small>{{ chat.last_updated|date:'H:i' }}</small>
+            {% if chat.unread_count %}
+              <span class="badge">{{ chat.unread_count }}</span>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-chat">No recent chats</div>
+    {% endif %}
+  </div>
+
+  <!-- Chat Window -->
+  <div class="chat-window">
+    {% if active_chat %}
+      <div class="chat-header">
+        <div class="header-info">
+          <img src="{{ active_chat.user.avatar.url|default:'https://i.pravatar.cc/40' }}" class="avatar" alt="{{ active_chat.user.username }}">
+          <span>{{ active_chat.user.username }}</span>
+        </div>
+        <div>
+          <i class="fas fa-search me-3"></i>
+          <i class="fas fa-ellipsis-v"></i>
+        </div>
+      </div>
+
+      <div class="messages d-flex flex-column">
+        {% for message in messages %}
+          <div class="message {% if message.sender == request.user %}sent{% else %}received{% endif %}">
+            {{ message.text }}
+          </div>
+        {% empty %}
+          <div class="empty-chat">No messages yet. Start the conversation!</div>
+        {% endfor %}
+      </div>
+
+      <form method="POST" action="{% url 'send_message' active_chat.id %}" class="chat-input">
+        {% csrf_token %}
+        <input type="text" name="message" placeholder="Type a message..." required>
+        <button class="btn-send">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </form>
+    {% else %}
+      <div class="chat-header">
+        <div class="header-info">
+          <span>Select a chat to start messaging</span>
+        </div>
+      </div>
+      <div class="messages d-flex flex-column"></div>
+      <div class="chat-input">
+        <input type="text" placeholder="Type a message..." disabled>
+        <button class="btn-send" disabled>
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

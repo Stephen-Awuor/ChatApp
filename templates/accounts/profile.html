@@ -1,0 +1,50 @@
+{% extends "base/main.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">My Profile</h2>
+
+  <form method="POST" enctype="multipart/form-data" class="p-4 rounded shadow-sm bg-white">
+    {% csrf_token %}
+
+    <!-- Profile Fields -->
+    <div class="mb-3">
+      <label for="id_username" class="form-label">Display Name</label>
+      {{ form.username }}
+    </div>
+
+    <div class="mb-3">
+      <label for="id_email" class="form-label">Email</label>
+      {{ form.email }}
+    </div>
+
+    <div class="mb-3">
+      <label for="id_avatar" class="form-label">Profile Picture</label><br>
+      {% if user.avatar %}
+        <img src="{{ user.avatar.url }}" alt="Profile picture" class="img-thumbnail mb-2" width="120">
+      {% endif %}
+      {{ form.avatar }}
+    </div>
+
+    <div class="mb-3">
+      <label for="id_old_password" class="form-label">Current Password</label>
+      {{ form.old_password }}
+    </div>
+
+    <div class="mb-3">
+      <label for="id_new_password1" class="form-label">New Password</label>
+      {{ form.new_password1 }}
+    </div>
+
+    <div class="mb-3">
+      <label for="id_new_password2" class="form-label">Confirm New Password</label>
+      {{ form.new_password2 }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <a href="{% url 'home' %}" class="btn btn-secondary px-4">Cancel</a>  
+    
+  </form>
+</div>
+{% endblock %}
