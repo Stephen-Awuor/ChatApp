@@ -1,0 +1,50 @@
+{% extends 'base/chat_base.html' %}
+{% block content %}
+<div class="container py-4" style="max-width: 700px;">
+  
+  <!-- Header / Chat Title -->
+  <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+    <div class="d-flex align-items-center">
+      <i class="fa fa-arrow-left me-3 text-muted" 
+         onclick="window.history.back()" style="cursor: pointer;"></i>
+
+      {% if room.room_type == 'private' %}
+        {% for participant in room.participants.all %}
+          {% if participant != request.user %}
+            <h5 class="mb-0"><i class="fa fa-user-circle me-2"></i>{{ participant.username }}</h5>
+          {% endif %}
+        {% endfor %}
+      {% else %}
+        <h5 class="mb-0"><i class="fa fa-users me-2"></i>{{ room.name|title }}</h5>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Chat Messages -->
+  <div id="chat-messages" class="border rounded p-3 mb-3" 
+       style="height: 400px; overflow-y: auto; background-color: #f8f9fa;">
+    {% for message in messages %}
+      <div class="mb-2 {% if message.sender == request.user %}text-end{% endif %}">
+        <span class="badge {% if message.sender == request.user %}bg-primary{% else %}bg-secondary{% endif %}">
+          {{ message.sender.username }}
+        </span>
+        <div class="p-2 mt-1 rounded {% if message.sender == request.user %}bg-primary text-white{% else %}bg-light{% endif %}">
+          {{ message.content }}
+        </div>
+        <small class="text-muted">{{ message.timestamp|date:"H:i" }}</small>
+      </div>
+    {% empty %}
+      <p class="text-center text-muted">No messages yet. Start chatting!</p>
+    {% endfor %}
+  </div>
+
+  <!-- Message Input -->
+  <form id="chat-form" method="POST" class="d-flex">
+    {% csrf_token %}
+    <input type="text" name="message" id="chat-message-input" 
+           class="form-control me-2" placeholder="Type your message..." autocomplete="off">
+    <button type="submit" class="btn btn-primary">Send</button>
+  </form>
+
+</div>
+{% endblock %}

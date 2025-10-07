@@ -1,6 +1,7 @@
 from django import forms
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, password_validation
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
+from django.contrib.auth.hashers import make_password
 
 User = get_user_model()
 
@@ -50,7 +51,21 @@ class EmailLoginForm(AuthenticationForm):
         })
     )
 
-class ProfileForm(PasswordChangeForm, forms.ModelForm):
+class ProfileForm(forms.ModelForm):
+    old_password = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Current Password"})
+    )
+    new_password1 = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "New Password"})
+    )
+    new_password2 = forms.CharField(
+        required=False,
+        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Confirm New Password"})
+    )
+    avatar = forms.ImageField(required=False)
+
     class Meta:
         model = User
         fields = ["username", "email", "avatar"]
@@ -66,4 +81,35 @@ class ProfileForm(PasswordChangeForm, forms.ModelForm):
             }),
         }
 
-    avatar = forms.ImageField(required=False)
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        old_password = cleaned_data.get("old_password")
+        new_password1 = cleaned_data.get("new_password1")
+        new_password2 = cleaned_data.get("new_password2")
+
+        # If user entered a new password, validate it
+        if new_password1 or new_password2:
+            if not old_password:
+                raise forms.ValidationError("Please enter your current password to change it.")
+            if not self.user.check_password(old_password):
+                raise forms.ValidationError("Your current password is incorrect.")
+            if new_password1 != new_password2:
+                raise forms.ValidationError("The new passwords do not match.")
+            password_validation.validate_password(new_password1, self.user)
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        new_password1 = self.cleaned_data.get("new_password1")
+
+        # Change password if user provided one
+        if new_password1:
+            user.set_password(new_password1)
+        if commit:
+            user.save()
+        return user

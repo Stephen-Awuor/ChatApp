@@ -39,7 +39,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'chat',
     'accounts',
+    'channels',
 ]
+ASGI_APPLICATION = 'kchat.asgi.application'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
