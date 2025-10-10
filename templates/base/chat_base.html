@@ -25,7 +25,7 @@
     </button>
 
 <div class="d-flex gap-3">
-  <a class="nav-link text-dark" href="{% url 'profile' %}"><i class="fa fa-user me-1"></i>Account</a>
+  <a class="nav-link text-dark" href="{% url 'profile' %}"><i class="fa fa-user me-1"></i>{{ user.username }}</a>
   <a class="nav-link text-dark" href="{% url 'logout' %}"><i class="fa fa-sign-out-alt me-1"></i>Logout</a>
 </div>
 
@@ -63,7 +63,7 @@
 
   <!-- USER LIST (for private chats, not stored on sidebar) -->
   <div class="d-flex justify-content-between align-items-center mb-3">
-    <h6 class="mb-0">All Users</h6>
+    <h6 class="mb-0">My Chats</h6>
     <a href="#" class="btn btn-sm btn-success">+ Invite</a>
   </div>
 

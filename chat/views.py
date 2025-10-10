@@ -29,14 +29,15 @@ def create_group(request):
             room = form.save(commit=False)
             room.room_type = 'group'
             room.save()
-            room.participants.add(request.user)  # add creator
-            for participant in form.cleaned_data['participants']:
-                room.participants.add(participant)
+            # Add the creator and selected participants
+            room.participants.add(request.user, *form.cleaned_data['participants'])
             return redirect('room_view', room_id=room.id)
     else:
         form = GroupChatForm(user=request.user)
-    
+
+    # No need to add rooms/users manually — context processor handles that
     return render(request, 'chat/create_group.html', {'form': form})
+
 
 
 @login_required
@@ -85,3 +86,5 @@ def send_message(request, username):
             Message.objects.create(room=room, sender=current_user, content=message_content)
 
         return redirect('start_chat', username=other_user.username)
+    
+

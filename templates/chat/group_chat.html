@@ -1,9 +1,9 @@
 {% extends 'base/chat_base.html' %}
 {% block content %}
-<div class="container py-4" style="max-width: 700px;">
-  
+<div class="container mt-3">
+  <div class="card shadow-sm">
   <!-- Header / Chat Title -->
-  <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+  <div class="card-header bg-primary text-white">
     <div class="d-flex align-items-center">
       <i class="fa fa-arrow-left me-3 text-muted" 
          onclick="window.history.back()" style="cursor: pointer;"></i>
@@ -34,7 +34,7 @@
         <small class="text-muted">{{ message.timestamp|date:"H:i" }}</small>
       </div>
     {% empty %}
-      <p class="text-center text-muted">No messages yet. Start chatting!</p>
+      <p class="text-center text-muted">No messages yet. Say hello 👋</p>
     {% endfor %}
   </div>
 
@@ -45,6 +45,6 @@
            class="form-control me-2" placeholder="Type your message..." autocomplete="off">
     <button type="submit" class="btn btn-primary">Send</button>
   </form>
-
+</div>
 </div>
 {% endblock %}
