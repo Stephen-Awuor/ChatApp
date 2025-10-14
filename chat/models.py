@@ -10,7 +10,7 @@ class ChatRoom(models.Model):
         ('private', 'Private'),
         ('group', 'Group'),
     )
-    name = models.CharField(max_length=255, blank=True, null=True)
+    name = models.CharField(max_length=255, blank=False, null=False)
     room_type = models.CharField(max_length=10, choices=ROOM_TYPES)
     participants = models.ManyToManyField(User, related_name='chatrooms')
     created_at = models.DateTimeField(auto_now_add=True)
