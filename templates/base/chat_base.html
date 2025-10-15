@@ -59,7 +59,7 @@
         {% for room in rooms %}
           {% if room.room_type == 'group' %}
             <li class="list-group-item">
-              <a href="{% url 'room_view' room.id %}" class="text-decoration-none d-block">
+              <a href="{% url 'group_chat' room.id %}" class="text-decoration-none d-block">
                 <strong>{{ room.name }}</strong>
                 <div class="small text-muted">Members: {{ room.participants.count }}</div>
               </a>

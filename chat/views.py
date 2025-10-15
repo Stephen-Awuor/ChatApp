@@ -41,14 +41,33 @@ def create_group(request):
 
 
 @login_required
-def room_view(request, room_id):
+def start_group_chat(request, room_id):
     room = get_object_or_404(ChatRoom, id=room_id)
     messages = room.messages.all().order_by('timestamp')
     return render(request, 'chat/group_chat.html', {'room': room, 'messages': messages})
 
-
 @login_required
-def start_chat(request, username):
+def send_group_message(request, room_id):
+    """Handle sending a message in a group chat"""
+    room = get_object_or_404(ChatRoom, id=room_id)
+
+    if request.method == 'POST':
+        current_user = request.user
+        message_content = request.POST.get('message')
+
+        if message_content:
+            Message.objects.create(room=room, sender=current_user, content=message_content)
+
+        # After sending message, redirect back to the same chat room
+        return redirect('group_chat', room_id=room.id)
+
+    # If it's a GET request, redirect to the group chat view
+    return redirect('group_chat', room_id=room.id)
+ 
+
+    
+@login_required
+def start_private_chat(request, username):
     """Open a one-on-one private chat with a specific user"""
     other_user = get_object_or_404(User, username=username)
     current_user = request.user
@@ -71,7 +90,7 @@ def start_chat(request, username):
 
 
 @login_required
-def send_message(request, username):
+def send_private_message(request, username):
     """Handle sending a message in a private chat"""
     if request.method == 'POST':
         other_user = get_object_or_404(User, username=username)

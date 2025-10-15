@@ -6,7 +6,6 @@
     <!-- Header / Chat Title -->
     <div class="card-header bg-primary text-white">
       <div class="d-flex align-items-center">
-        <i class="fa fa-arrow-left me-3 text-light" onclick="window.history.back()" style="cursor: pointer;"></i>
         {% if room.room_type == 'private' %}
           {% for participant in room.participants.all %}
             {% if participant != request.user %}
@@ -24,12 +23,12 @@
          style="height: 400px; overflow-y: auto; background-color: #f8f9fa;">
       {% for message in messages %}
         <div class="mb-2 {% if message.sender == request.user %}text-end{% endif %}">
-          <span class="badge {% if message.sender == request.user %}bg-primary{% else %}bg-secondary{% endif %}">
+          <span class="badge {% if message.sender == request.user %}bg-light text-dark{% else %}bg-secondary{% endif %}">
             {{ message.sender.username }}
-          </span>
-          <div class="p-2 mt-1 rounded {% if message.sender == request.user %}bg-primary text-white{% else %}bg-light{% endif %}">
+          </span><br>
+          <span class="badge {% if message.sender == request.user %}bg-info text-white{% else %}bg-light{% endif %}">
             {{ message.content }}
-          </div>
+          </span><br>
           <small class="text-muted">{{ message.timestamp|date:"H:i" }}</small>
         </div>
       {% empty %}
@@ -38,7 +37,7 @@
     </div>
 
     <!-- Message Input -->
-    <form id="chat-form" method="POST" class="d-flex">
+    <form id="chat-form" method="POST" action="{% url 'group_message' room.id %}" class="d-flex">
       {% csrf_token %}
       <input type="text" name="message" id="chat-message-input" 
              class="form-control me-2" placeholder="Type your message..." autocomplete="off">

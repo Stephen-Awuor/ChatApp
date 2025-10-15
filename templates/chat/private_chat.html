@@ -9,7 +9,7 @@
       {% for msg in messages %}
         {% if msg.sender == request.user %}
           <div class="text-end mb-2">
-            <span class="badge bg-primary">{{ msg.content }}</span><br>
+            <span class="badge bg-info">{{ msg.content }}</span><br>
             <small class="text-muted">{{ msg.timestamp|date:"H:i" }}</small>
           </div>
         {% else %}
