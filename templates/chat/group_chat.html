@@ -13,7 +13,11 @@
             {% endif %}
           {% endfor %}
         {% else %}
-          <h5 class="mb-0"><i class="fa fa-users me-2"></i>{{ room.name|title }}</h5>
+          <h5 class="mb-0">
+              <a href="{% url 'group_info' room.id %}" class="text-white text-decoration-none">
+               <i class="fa fa-users me-2"></i>{{ room.name|title }}
+              </a>
+          </h5>
         {% endif %}
       </div>
     </div>

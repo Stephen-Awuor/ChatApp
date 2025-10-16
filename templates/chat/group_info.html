@@ -1,0 +1,32 @@
+{% extends 'base/chat_base.html' %}
+{% block content %}
+<div class="container mt-3">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <h5 class="mb-0"><i class="fa fa-users me-2"></i>{{ room.name|title }}</h5>
+      <a href="{% url 'group_chat' room.id %}" class="btn btn-light btn-sm">Back</a>
+    </div>
+
+    <div class="card-body">
+      <h6>Group Members ({{ members.count }})</h6>
+      <ul class="list-group mb-3">
+        {% for member in members %}
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ member.username }}
+            {% if member == request.user %}
+              <span class="badge bg-success">You</span>
+            {% endif %}
+          </li>
+        {% empty %}
+          <li class="list-group-item text-muted">No members found.</li>
+        {% endfor %}
+      </ul>
+
+      <a href="{% url 'leave_group' room.id %}" 
+         class="btn btn-danger">
+        Leave
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

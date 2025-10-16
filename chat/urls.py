@@ -9,4 +9,6 @@ urlpatterns = [
     path('group_message/<int:room_id>/', views.send_group_message, name='group_message'),
     path('start_chat/<str:username>/', views.start_private_chat, name='start_chat'),
     path('send_message/<str:username>/', views.send_private_message, name='send_message'), 
+    path('group_info/<int:room_id>/', views.view_group_info, name='group_info'),
+    path('group/<int:room_id>/leave/', views.leave_group, name='leave_group'),
 ]

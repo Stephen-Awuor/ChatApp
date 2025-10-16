@@ -3,6 +3,7 @@ from django.contrib.auth import logout, get_user_model
 from django.contrib.auth.decorators import login_required
 from .models import ChatRoom, Message
 from .forms import GroupChatForm
+from django.contrib import messages
 
 User = get_user_model()
 
@@ -106,4 +107,24 @@ def send_private_message(request, username):
 
         return redirect('start_chat', username=other_user.username)
     
+@login_required
+def view_group_info(request, room_id):
+    """Display group details and member list"""
+    room = get_object_or_404(ChatRoom, id=room_id, room_type='group')
+    members = room.participants.all()
+    return render(request, 'chat/group_info.html', {'room': room, 'members': members})
 
+@login_required
+def leave_group(request, room_id):
+    """Allow user to confirm and leave a group"""
+    room = get_object_or_404(ChatRoom, id=room_id, room_type='group')
+    user = request.user
+    if request.method == 'POST':
+        if user in room.participants.all():
+            room.participants.remove(user)
+            messages.success(request, f"You have left the group '{room.name}'.")
+        else:
+            messages.warning(request, "You are not a member of this group.")
+        return redirect('home')
+    # If GET, show confirmation page
+    return render(request, 'chat/confirm_leave_group.html', {'room': room})
