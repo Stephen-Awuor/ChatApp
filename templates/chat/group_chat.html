@@ -27,10 +27,10 @@
          style="height: 400px; overflow-y: auto; background-color: #f8f9fa;">
       {% for message in messages %}
         <div class="mb-2 {% if message.sender == request.user %}text-end{% endif %}">
-          <span class="badge {% if message.sender == request.user %}bg-light text-dark{% else %}bg-secondary{% endif %}">
+          <span class="badge {% if message.sender == request.user %}bg-light text-dark{% else %}bg-light text-dark{% endif %}">
             {{ message.sender.username }}
           </span><br>
-          <span class="badge {% if message.sender == request.user %}bg-info text-white{% else %}bg-light{% endif %}">
+          <span class="badge {% if message.sender == request.user %}bg-info text-white{% else %}bg-info text-white{% endif %}">
             {{ message.content }}
           </span><br>
           <small class="text-muted">{{ message.timestamp|date:"H:i" }}</small>

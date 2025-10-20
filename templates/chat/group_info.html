@@ -2,19 +2,40 @@
 {% block content %}
 <div class="container mt-3">
   <div class="card shadow-sm">
+
+    <!-- Header -->
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-      <h5 class="mb-0"><i class="fa fa-users me-2"></i>{{ room.name|title }}</h5>
-      <a href="{% url 'group_chat' room.id %}" class="btn btn-light btn-sm">Back</a>
+      <h5 class="mb-0">
+        <i class="fa fa-users me-2"></i>{{ room.name|title }}
+      </h5>
+      <a href="{% url 'home' %}" class="btn btn-light btn-sm">Back</a>
     </div>
 
+    <!-- Body -->
     <div class="card-body">
-      <h6>Group Members ({{ members.count }})</h6>
+      <h6 class="fw-bold mb-3">Group Members ({{ room.participants.count }})</h6>
       <ul class="list-group mb-3">
-        {% for member in members %}
+        {% for member in room.participants.all %}
           <li class="list-group-item d-flex justify-content-between align-items-center">
-            {{ member.username }}
-            {% if member == request.user %}
-              <span class="badge bg-success">You</span>
+            <div>
+              {% if member == room.created_by %}
+                <i class="text-warning me-1"></i>
+                <strong>{{ member.username }}</strong>
+                <small class="text-muted">(Admin)</small>
+              {% else %}
+                {{ member.username }}
+              {% endif %}
+              {% if member == request.user and member != room.created_by %}
+                <span class="badge bg-success ms-2">You</span>
+              {% endif %}
+            </div>
+
+            <!-- Admin controls -->
+            {% if request.user == room.created_by and member != room.created_by %}
+              <a href="{% url 'remove-member' room.id member.id %}" 
+                 class="btn btn-outline-danger btn-sm">
+                <i class=""></i> Remove
+              </a>
             {% endif %}
           </li>
         {% empty %}
@@ -22,11 +43,26 @@
         {% endfor %}
       </ul>
 
-      <a href="{% url 'leave_group' room.id %}" 
-         class="btn btn-danger">
-        Leave
-      </a>
+      <!-- Admin actions -->
+      {% if request.user == room.created_by %}
+        <div class="d-flex justify-content-between">
+          <a href="{% url 'add-member' room.id %}" class="btn btn-success btn-sm">
+            <i class="fa fa-user-plus me-1"></i> Add
+          </a>
+          <form action="{% url 'delete-group' room.id %}" method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-sm">
+              <i class="fa fa-trash me-1"></i> Delete Group
+            </button>
+          </form>
+        </div>
+      {% else %}
+        <a href="{% url 'leave-group' room.id %}" class="btn btn-warning btn-sm">
+          <i class="fa fa-sign-out-alt me-1"></i> Leave Group
+        </a>
+      {% endif %}
     </div>
+
   </div>
 </div>
 {% endblock %}

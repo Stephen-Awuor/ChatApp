@@ -8,7 +8,7 @@
     .message-recv { background: #e9ecef; color: #212529; }
     .chat-input-bar { border-top: 1px solid #e9ecef; padding: 10px; background: #fff; }
 
-    .status-dot {
+.status-dot {
   height: 10px;
   width: 10px;
   border-radius: 50%;

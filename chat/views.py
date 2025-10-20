@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from .models import ChatRoom, Message
 from .forms import GroupChatForm
 from django.contrib import messages
+from .forms import AddMemberForm
 
 User = get_user_model()
 
@@ -29,15 +30,19 @@ def create_group(request):
         if form.is_valid():
             room = form.save(commit=False)
             room.room_type = 'group'
+            room.created_by = request.user  # ← Set creator as admin
             room.save()
+
             # Add the creator and selected participants
             room.participants.add(request.user, *form.cleaned_data['participants'])
-            return redirect('room_view', room_id=room.id)
+
+            messages.success(request, f"Group '{room.name}' created successfully!")
+            return redirect('group_info', room_id=room.id)
     else:
         form = GroupChatForm(user=request.user)
 
-    # No need to add rooms/users manually — context processor handles that
     return render(request, 'chat/create_group.html', {'form': form})
+
 
 
 
@@ -116,15 +121,66 @@ def view_group_info(request, room_id):
 
 @login_required
 def leave_group(request, room_id):
-    """Allow user to confirm and leave a group"""
     room = get_object_or_404(ChatRoom, id=room_id, room_type='group')
     user = request.user
-    if request.method == 'POST':
-        if user in room.participants.all():
-            room.participants.remove(user)
-            messages.success(request, f"You have left the group '{room.name}'.")
-        else:
-            messages.warning(request, "You are not a member of this group.")
+
+    if user == room.created_by:
+        messages.error(request, "Group admin cannot leave the group. You can delete it instead.")
+        return redirect('group_info', room_id=room.id)
+
+    if user in room.participants.all():
+        room.participants.remove(user)
+        messages.success(request, f"You have left the group '{room.name}'.")
         return redirect('home')
-    # If GET, show confirmation page
-    return render(request, 'chat/confirm_leave_group.html', {'room': room})
+    else:
+        messages.warning(request, "You are not a member of this group.")
+    return redirect('home')
+
+
+@login_required
+def add_member(request, room_id):
+    room = get_object_or_404(ChatRoom, id=room_id)
+
+    if request.method == 'POST':
+        form = AddMemberForm(request.POST, room=room)
+        if form.is_valid():
+            participants = form.cleaned_data['participants']
+            room.participants.add(*participants)
+            messages.success(request, f"Added {len(participants)} new member(s) to {room.name}.")
+            return redirect('group_info', room.id)
+    else:
+        form = AddMemberForm(room=room)
+
+    return render(request, 'chat/add_member.html', {'form': form, 'room': room})
+
+@login_required
+def remove_member(request, room_id, user_id):
+    room = get_object_or_404(ChatRoom, id=room_id, room_type='group')
+    if request.user != room.created_by:
+        messages.error(request, "Only the group admin can remove members.")
+        return redirect('group_info', room_id=room.id)
+
+    user_to_remove = get_object_or_404(User, id=user_id)
+    if user_to_remove == room.created_by:
+        messages.warning(request, "Admin cannot remove themselves.")
+    else:
+        room.participants.remove(user_to_remove)
+        messages.success(request, f"{user_to_remove.username} removed from the group.")
+    return redirect('group_info', room_id=room.id)
+
+@login_required
+def delete_group(request, room_id):
+    room = get_object_or_404(ChatRoom, id=room_id, room_type='group')
+
+    if request.user != room.created_by:
+        messages.error(request, "Only the group admin can delete the group.")
+        return redirect('chat_room', room_id=room.id)
+
+    if request.method == 'POST':
+        room.delete()
+        messages.success(request, "Group deleted successfully.")
+        return redirect('home')
+
+    return render(request, 'chat/confirm_delete_group.html', {'room': room})
+
+

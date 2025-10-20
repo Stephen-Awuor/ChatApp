@@ -10,5 +10,8 @@ urlpatterns = [
     path('start_chat/<str:username>/', views.start_private_chat, name='start_chat'),
     path('send_message/<str:username>/', views.send_private_message, name='send_message'), 
     path('group_info/<int:room_id>/', views.view_group_info, name='group_info'),
-    path('group/<int:room_id>/leave/', views.leave_group, name='leave_group'),
+    path('group/<int:room_id>/leave/', views.leave_group, name='leave-group'),
+    path('add-member/<int:room_id>/', views.add_member, name='add-member'),
+    path('delete-group/<int:room_id>/', views.delete_group, name='delete-group'),
+    path('group/<int:room_id>/remove/<int:user_id>/', views.remove_member, name='remove-member'),
 ]
