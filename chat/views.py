@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import logout, get_user_model
 from django.contrib.auth.decorators import login_required
-from .models import ChatRoom, Message
+from .models import ChatRoom, Message, ChatInvite
+from django.urls import reverse
 from .forms import GroupChatForm
 from django.contrib import messages
 from .forms import AddMemberForm
+from django.http import JsonResponse
 
 User = get_user_model()
 
@@ -21,7 +23,6 @@ def home(request):
         "messages": None
     }
     return render(request, "chat/home.html", context)
-
 
 @login_required
 def create_group(request):
@@ -42,9 +43,6 @@ def create_group(request):
         form = GroupChatForm(user=request.user)
 
     return render(request, 'chat/create_group.html', {'form': form})
-
-
-
 
 @login_required
 def start_group_chat(request, room_id):
@@ -70,8 +68,6 @@ def send_group_message(request, room_id):
     # If it's a GET request, redirect to the group chat view
     return redirect('group_chat', room_id=room.id)
  
-
-    
 @login_required
 def start_private_chat(request, username):
     """Open a one-on-one private chat with a specific user"""
@@ -93,7 +89,6 @@ def start_private_chat(request, username):
         'other_user': other_user,
         'messages': messages,
     })
-
 
 @login_required
 def send_private_message(request, username):
@@ -136,7 +131,6 @@ def leave_group(request, room_id):
         messages.warning(request, "You are not a member of this group.")
     return redirect('home')
 
-
 @login_required
 def add_member(request, room_id):
     room = get_object_or_404(ChatRoom, id=room_id)
@@ -174,7 +168,7 @@ def delete_group(request, room_id):
 
     if request.user != room.created_by:
         messages.error(request, "Only the group admin can delete the group.")
-        return redirect('chat_room', room_id=room.id)
+        return redirect('group_info', room_id=room.id)
 
     if request.method == 'POST':
         room.delete()
@@ -182,5 +176,39 @@ def delete_group(request, room_id):
         return redirect('home')
 
     return render(request, 'chat/confirm_delete_group.html', {'room': room})
+
+@login_required
+def ajax_generate_invite(request, room_id):
+    room = get_object_or_404(ChatRoom, id=room_id)
+
+    # Create a new invite
+    invite = ChatInvite.objects.create(
+        room=room,
+        invited_by=request.user
+    )
+
+    # Build invite link
+    invite_link = request.build_absolute_uri(
+        reverse('accept_invite', args=[str(invite.token)])
+    )
+
+    return JsonResponse({
+        'invite_link': invite_link,
+        'invite_code': invite.token
+    })
+
+@login_required
+def accept_invite(request, token):
+    invite = get_object_or_404(ChatInvite, token=token, is_active=True)
+    room = invite.room
+
+    # Add user to the room
+    room.participants.add(request.user)
+    invite.is_active = False
+    invite.save()
+
+    messages.success(request, f"You’ve joined {room.name}!")
+    return redirect('group_info', room_id=room.id)
+
 
 

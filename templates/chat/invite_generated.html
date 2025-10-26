@@ -1,0 +1,44 @@
+{% extends 'base/chat_base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-success text-white">
+      <h5 class="mb-0">Invite Link</h5>
+    </div>
+
+    <div class="card-body text-center">
+      <p>Share this link to invite someone to <strong>{{ room.name }}</strong>:</p>
+
+      <div class="input-group mb-3">
+        <input id="inviteLink" type="text" class="form-control" readonly value="{{ invite_link }}">
+        <button class="btn btn-primary" id="copyButton" onclick="copyInviteLink()">Copy</button>
+      </div>
+
+      <small class="text-muted">Invite Code: {{ invite_code }}</small>
+    </div>
+
+    <div class="card-footer text-center">
+      <a href="{% url 'chat_room' room.id %}" class="btn btn-outline-secondary btn-sm">Back to Chat</a>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyInviteLink() {
+  const input = document.getElementById('inviteLink');
+  input.select();
+  input.setSelectionRange(0, 99999); // for mobile
+  navigator.clipboard.writeText(input.value);
+  const btn = document.getElementById('copyButton');
+  btn.textContent = "Copied!";
+  btn.classList.remove('btn-primary');
+  btn.classList.add('btn-success');
+  setTimeout(() => {
+    btn.textContent = "Copy";
+    btn.classList.remove('btn-success');
+    btn.classList.add('btn-primary');
+  }, 2000);
+}
+</script>
+{% endblock %}

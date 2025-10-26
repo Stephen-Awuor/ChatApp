@@ -5,6 +5,12 @@
 <div class="container mt-5" style="max-width: 500px;">
   <h3 class="text-center mb-4">Create A Group</h3>
 
+  {% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+  {% endif %}
+
   <form method="POST">
     {% csrf_token %}
     <div class="mb-3">

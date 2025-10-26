@@ -73,7 +73,7 @@
       <!-- USER LIST -->
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h6 class="mb-0">My Chats</h6>
-  <a href="#" class="btn btn-sm btn-success">+ Invite</a>
+  <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#inviteModal">+ Invite</button>
 </div>
 
 <ul class="list-group">
@@ -104,6 +104,7 @@
 
     <!-- MAIN CHAT WINDOW -->
     <div class="col-md-8 col-lg-9 chat-window">
+
       {% block content %}
       <div class="d-flex flex-column justify-content-center align-items-center h-100 text-muted">
         <i class="fa fa-comments" style="font-size: 48px;"></i>
@@ -168,6 +169,8 @@
   presenceSocket.onclose = function (e) {
     console.error('Presence socket closed unexpectedly');
   };
+
+  
 </script>
 </body>
 </html>

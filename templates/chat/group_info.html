@@ -3,13 +3,23 @@
 <div class="container mt-3">
   <div class="card shadow-sm">
 
+    {% if messages %}
+  {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+{% endif %}
+
     <!-- Header -->
     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-      <h5 class="mb-0">
-        <i class="fa fa-users me-2"></i>{{ room.name|title }}
-      </h5>
-      <a href="{% url 'home' %}" class="btn btn-light btn-sm">Back</a>
-    </div>
+  <h5 class="mb-0">
+    <i class="fa fa-users me-2"></i>{{ room.name|title }}
+  </h5>
+
+  <div class="d-flex gap-2">
+    <a href="{% url 'home' %}" class="btn btn-light btn-sm">Back</a>
+    <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#inviteModal">+ Invite</button>
+  </div>
+</div>
 
     <!-- Body -->
     <div class="card-body">
@@ -57,12 +67,64 @@
           </form>
         </div>
       {% else %}
-        <a href="{% url 'leave-group' room.id %}" class="btn btn-warning btn-sm">
-          <i class="fa fa-sign-out-alt me-1"></i> Leave Group
-        </a>
+        <a href="{% url 'leave-group' room.id %}" class="btn btn-warning btn-sm"><i class="fa fa-sign-out-alt me-1"></i> Leave Group</a>
       {% endif %}
+        
     </div>
-
   </div>
 </div>
+<!-- Invite Modal -->
+<div class="modal fade" id="inviteModal" tabindex="-1" aria-labelledby="inviteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="inviteModalLabel">Invite Someone</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p>Click below to generate an invite link for this chat:</p>
+        <button id="generateInviteBtn" class="btn btn-success">Generate Invite Link</button>
+
+        <div id="inviteResult" class="mt-3" style="display:none;">
+          <input type="text" id="inviteLink" class="form-control mb-2" readonly>
+          <small class="text-muted">Invite Code: <span id="inviteCode"></span></small><br>
+          <button id="copyButton" class="btn btn-primary mt-2" onclick="copyInviteLink()">Copy Link</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById("generateInviteBtn").addEventListener("click", function() {
+  fetch("{% url 'ajax_generate_invite' room.id %}")
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        alert(data.error);
+      } else {
+        document.getElementById("inviteLink").value = data.invite_link;
+        document.getElementById("inviteCode").textContent = data.invite_code;
+        document.getElementById("inviteResult").style.display = 'block';
+      }
+    })
+    .catch(err => alert("Error generating invite: " + err));
+});
+
+function copyInviteLink() {
+  const input = document.getElementById('inviteLink');
+  input.select();
+  navigator.clipboard.writeText(input.value);
+  const btn = document.getElementById('copyButton');
+  btn.textContent = "Copied!";
+  btn.classList.remove('btn-primary');
+  btn.classList.add('btn-success');
+  setTimeout(() => {
+    btn.textContent = "Copy Link";
+    btn.classList.remove('btn-success');
+    btn.classList.add('btn-primary');
+  }, 2000);
+}
+</script>
+
 {% endblock %}
