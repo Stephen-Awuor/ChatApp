@@ -31,11 +31,13 @@ class Message(models.Model):
         return f"{self.sender.username}: {self.content[:20]}"
     
 class ChatInvite(models.Model):
-    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='invites')
+    room = models.ForeignKey(ChatRoom, on_delete=models.CASCADE, related_name='invites', null=True, blank=True)
     invited_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     token = models.CharField(max_length=100, unique=True, default=uuid.uuid4)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"Invite for {self.room.name} by {self.invited_by.username}"
+        return f"Invite for {self.room.name if self.room else 'Private Chat'} by {self.invited_by.username}"
+
+    

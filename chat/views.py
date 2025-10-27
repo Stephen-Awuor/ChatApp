@@ -70,42 +70,49 @@ def send_group_message(request, room_id):
  
 @login_required
 def start_private_chat(request, username):
-    """Open a one-on-one private chat with a specific user"""
+    """Start or open a private chat with another user"""
     other_user = get_object_or_404(User, username=username)
     current_user = request.user
 
-    # Generate consistent private room name
+    # Always generate a deterministic room name
     room_name = f"private_{min(current_user.id, other_user.id)}_{max(current_user.id, other_user.id)}"
 
     # Either get the existing room or create a new one
-    room, created = ChatRoom.objects.get_or_create(name=room_name, room_type='private')
+    room, created = ChatRoom.objects.get_or_create(
+        name=room_name,
+        defaults={'room_type': 'private', 'created_by': current_user}
+    )
     room.participants.add(current_user, other_user)
 
-    # Fetch chat messages
-    messages = room.messages.order_by('timestamp')
+    messages_qs = room.messages.order_by('timestamp')
 
     return render(request, 'chat/private_chat.html', {
         'room': room,
         'other_user': other_user,
-        'messages': messages,
+        'messages': messages_qs,
     })
+
 
 @login_required
 def send_private_message(request, username):
-    """Handle sending a message in a private chat"""
+    """Send a message inside a private chat"""
+    other_user = get_object_or_404(User, username=username)
+    current_user = request.user
+    room_name = f"private_{min(current_user.id, other_user.id)}_{max(current_user.id, other_user.id)}"
+
+    room, _ = ChatRoom.objects.get_or_create(
+        name=room_name,
+        defaults={'room_type': 'private', 'created_by': current_user}
+    )
+    room.participants.add(current_user, other_user)
+
     if request.method == 'POST':
-        other_user = get_object_or_404(User, username=username)
-        current_user = request.user
-        message_content = request.POST.get('message')
+        content = request.POST.get('message', '').strip()
+        if content:
+            Message.objects.create(room=room, sender=current_user, content=content)
 
-        room_name = f"private_{min(current_user.id, other_user.id)}_{max(current_user.id, other_user.id)}"
-        room, _ = ChatRoom.objects.get_or_create(name=room_name, room_type='private')
-        room.participants.add(current_user, other_user)
+    return redirect('start_chat', username=other_user.username)
 
-        if message_content:
-            Message.objects.create(room=room, sender=current_user, content=message_content)
-
-        return redirect('start_chat', username=other_user.username)
     
 @login_required
 def view_group_info(request, room_id):
@@ -209,6 +216,53 @@ def accept_invite(request, token):
 
     messages.success(request, f"You’ve joined {room.name}!")
     return redirect('group_info', room_id=room.id)
+
+@login_required
+def ajax_generate_private_invite(request):
+    """Generate an invite link for a private chat."""
+    current_user = request.user
+
+    # Create a temporary placeholder ChatInvite (room will be made later)
+    invite = ChatInvite.objects.create(
+        room=None,  # We'll assign later
+        invited_by=current_user
+    )
+
+    # Build the private invite link
+    invite_link = request.build_absolute_uri(
+        reverse('accept_private_invite', args=[str(invite.token)])
+    )
+
+    return JsonResponse({
+        'invite_link': invite_link,
+        'invite_code': invite.token
+    })
+
+@login_required
+def accept_private_invite(request, token):
+    """Accept an invite to a private chat and create/join the room."""
+    invite = get_object_or_404(ChatInvite, token=token, is_active=True)
+    inviter = invite.invited_by
+    invitee = request.user
+
+    # Generate consistent room name
+    room_name = f"private_{min(inviter.id, invitee.id)}_{max(inviter.id, invitee.id)}"
+
+    # Get or create the private room
+    room, _ = ChatRoom.objects.get_or_create(
+        name=room_name,
+        defaults={'room_type': 'private', 'created_by': inviter}
+    )
+    room.participants.add(inviter, invitee)
+
+    # Mark invite as used
+    invite.room = room
+    invite.is_active = False
+    invite.save()
+
+    messages.success(request, f"You are now connected with {inviter.username}.")
+    return redirect('start_chat', username=inviter.username)
+
 
 
 
