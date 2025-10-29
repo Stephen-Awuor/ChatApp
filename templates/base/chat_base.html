@@ -76,6 +76,29 @@
   <button id="generatePrivateInvite" class="btn btn-sm btn-success">+ Invite</button>
 </div>
 
+<!-- Private Invite Modal -->
+<div class="modal fade" id="privateInviteModal" tabindex="-1" aria-labelledby="privateInviteModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="privateInviteModalLabel">Invite Someone (Private Chat)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        <p>Click below to generate a private chat invite link:</p>
+        <button id="generatePrivateInviteBtn" class="btn btn-success">Generate Invite Link</button>
+
+        <div id="privateInviteResult" class="mt-3" style="display:none;">
+          <input type="text" id="privateInviteLink" class="form-control mb-2" readonly>
+          <small class="text-muted">Invite Code: <span id="privateInviteCode"></span></small><br>
+          <button id="copyPrivateInviteButton" class="btn btn-primary mt-2" onclick="copyPrivateInviteLink()">Copy Link</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <ul class="list-group">
   {% for u in users %}
     {% if u != request.user %}
@@ -171,14 +194,43 @@
   };
 
   //For private chat invite
-  document.getElementById('generatePrivateInvite').addEventListener('click', async () => {
-  const response = await fetch("{% url 'ajax_generate_private_invite' %}");
-  const data = await response.json();
-  document.getElementById('privateInviteLink').innerHTML =
-    `<a href="${data.invite_link}">${data.invite_link}</a>`;
+  document.getElementById('generatePrivateInvite').addEventListener('click', function() {
+  const modal = new bootstrap.Modal(document.getElementById('privateInviteModal'));
+  modal.show();
 });
 
-  
+// Generate the private chat invite
+document.getElementById("generatePrivateInviteBtn").addEventListener("click", function() {
+  fetch("{% url 'ajax_generate_private_invite' %}")
+    .then(response => response.json())
+    .then(data => {
+      if (data.error) {
+        alert(data.error);
+      } else {
+        document.getElementById("privateInviteLink").value = data.invite_link;
+        document.getElementById("privateInviteCode").textContent = data.invite_code;
+        document.getElementById("privateInviteResult").style.display = 'block';
+      }
+    })
+    .catch(err => alert("Error generating invite: " + err));
+});
+
+// Copy link
+function copyPrivateInviteLink() {
+  const input = document.getElementById('privateInviteLink');
+  input.select();
+  navigator.clipboard.writeText(input.value);
+  const btn = document.getElementById('copyPrivateInviteButton');
+  btn.textContent = "Copied!";
+  btn.classList.remove('btn-primary');
+  btn.classList.add('btn-success');
+  setTimeout(() => {
+    btn.textContent = "Copy Link";
+    btn.classList.remove('btn-success');
+    btn.classList.add('btn-primary');
+  }, 2000);
+}
+
 </script>
 </body>
 </html>

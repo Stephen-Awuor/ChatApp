@@ -17,6 +17,6 @@ urlpatterns = [
     path('invite/<int:room_id>/', views.ajax_generate_invite, name='generate_invite'),
     path('invite/ajax/<int:room_id>/', views.ajax_generate_invite, name='ajax_generate_invite'),
     path('invite/accept/<str:token>/', views.accept_invite, name='accept_invite'),
-    path('invite/private/', views.ajax_generate_private_invite, name='ajax_generate_private_invite'),
+    path('ajax_generate_private_invite/', views.ajax_generate_private_invite, name='ajax_generate_private_invite'),
     path('invite/private/<str:token>/', views.accept_private_invite, name='accept_private_invite'),
 ]

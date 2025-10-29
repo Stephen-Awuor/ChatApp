@@ -7,6 +7,7 @@ from .forms import GroupChatForm
 from django.contrib import messages
 from .forms import AddMemberForm
 from django.http import JsonResponse
+import uuid
 
 User = get_user_model()
 
@@ -220,49 +221,62 @@ def accept_invite(request, token):
 @login_required
 def ajax_generate_private_invite(request):
     """Generate an invite link for a private chat."""
-    current_user = request.user
+    try:
+        # Create a new invite (no room yet, private chat type)
+        invite = ChatInvite.objects.create(
+            invited_by=request.user,
+            token=str(uuid.uuid4()),
+        )
 
-    # Create a temporary placeholder ChatInvite (room will be made later)
-    invite = ChatInvite.objects.create(
-        room=None,  # We'll assign later
-        invited_by=current_user
-    )
+        # Build full invite link
+        invite_link = request.build_absolute_uri(
+            reverse('accept_private_invite', args=[invite.token])
+        )
 
-    # Build the private invite link
-    invite_link = request.build_absolute_uri(
-        reverse('accept_private_invite', args=[str(invite.token)])
-    )
-
-    return JsonResponse({
-        'invite_link': invite_link,
-        'invite_code': invite.token
-    })
+        return JsonResponse({
+            'invite_link': invite_link,
+            'invite_code': invite.token,
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)})
 
 @login_required
 def accept_private_invite(request, token):
-    """Accept an invite to a private chat and create/join the room."""
+    """Accept a private chat invite and start or open a 1-on-1 chat."""
     invite = get_object_or_404(ChatInvite, token=token, is_active=True)
     inviter = invite.invited_by
-    invitee = request.user
+    invited_user = request.user
 
-    # Generate consistent room name
-    room_name = f"private_{min(inviter.id, invitee.id)}_{max(inviter.id, invitee.id)}"
+    if inviter == invited_user:
+        return redirect('home')
 
-    # Get or create the private room
-    room, _ = ChatRoom.objects.get_or_create(
-        name=room_name,
-        defaults={'room_type': 'private', 'created_by': inviter}
+    # Check if a private room between the two already exists
+    existing_room = (
+        ChatRoom.objects.filter(room_type='private')
+        .filter(participants=inviter)
+        .filter(participants=invited_user)
+        .distinct()
+        .first()
     )
-    room.participants.add(inviter, invitee)
 
-    # Mark invite as used
-    invite.room = room
+    if existing_room:
+        room = existing_room
+    else:
+        # Create a new private room
+        room_name = f"Private Chat: {inviter.username} & {invited_user.username}"
+        room = ChatRoom.objects.create(
+            name=room_name,
+            room_type='private',
+            created_by=inviter
+        )
+        room.participants.add(inviter, invited_user)
+
+    # Mark invite as used (optional)
     invite.is_active = False
+    invite.room = room
     invite.save()
 
-    messages.success(request, f"You are now connected with {inviter.username}.")
+    # Redirect to the private chat room
     return redirect('start_chat', username=inviter.username)
-
-
 
 
