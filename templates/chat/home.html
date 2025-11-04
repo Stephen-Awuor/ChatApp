@@ -50,7 +50,11 @@
         <!-- Empty right pane -->
         <div class="d-flex flex-column justify-content-center align-items-center h-100 text-muted">
           <i class="fa fa-comments" style="font-size: 48px;"></i>
-          <p class="mt-3">Select a group or a chat to start messaging</p>
+          <p class="mt-3"> Select a group or a chat to start messaging |
+          <a href="{% url 'ai_chat' %}" class="text-primary text-decoration-none fw-semibold">
+          Ask AI
+          </a>
+          </p>
         </div>
       {% endif %}
     </div>

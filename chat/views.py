@@ -8,8 +8,14 @@ from django.contrib import messages
 from .forms import AddMemberForm
 from django.http import JsonResponse
 import uuid
+from openai import OpenAI
+from dotenv import load_dotenv
+import os
 
+load_dotenv()  # Load .env values
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 User = get_user_model()
+
 
 @login_required
 def home(request):
@@ -278,5 +284,36 @@ def accept_private_invite(request, token):
 
     # Redirect to the private chat room
     return redirect('start_chat', username=inviter.username)
+
+def ai_chat(request):
+    """Render the Smart Assistant chat UI"""
+    return render(request, "chat/ai_chat.html")
+
+
+@login_required
+def ai_response(request):
+    """Handle user messages and return AI responses"""
+    if request.method == "POST":
+        user_message = request.POST.get("message", "")
+        if not user_message:
+            return JsonResponse({"error": "No message provided."}, status=400)
+
+        try:
+            # Use the new API client (correct syntax)
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",  # You can also use "gpt-4-turbo" or "gpt-3.5-turbo"
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant integrated into a chat app."},
+                    {"role": "user", "content": user_message},
+                ]
+            )
+
+            ai_message = response.choices[0].message.content
+            return JsonResponse({"reply": ai_message})
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+    return JsonResponse({"error": "Invalid request."}, status=400)
 
 

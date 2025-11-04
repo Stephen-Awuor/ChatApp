@@ -76,6 +76,8 @@
   <button id="generatePrivateInvite" class="btn btn-sm btn-success">+ Invite</button>
 </div>
 
+
+
 <!-- Private Invite Modal -->
 <div class="modal fade" id="privateInviteModal" tabindex="-1" aria-labelledby="privateInviteModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
@@ -119,10 +121,17 @@
   {% empty %}
     <li class="list-group-item text-center text-muted">No other users</li>
   {% endfor %}
+    </ul>
+      {% endblock %}
+
+<ul class="list-group">
+  <li class="list-group-item">
+    <a href="{% url 'ai_chat' %}" class="text-decoration-none d-block">
+      <i class="fa fa-robot me-2 text-primary"></i> Smart Assistant
+    </a>
+  </li>
 </ul>
 
-
-      {% endblock %}
     </div>
 
     <!-- MAIN CHAT WINDOW -->

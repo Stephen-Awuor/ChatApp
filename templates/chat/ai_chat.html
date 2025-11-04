@@ -1,0 +1,53 @@
+{% extends 'base/chat_base.html' %}
+{% block content %}
+<div class="container py-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0"><i class="fa fa-robot me-2"></i>Smart Assistant</h5>
+    </div>
+    <div class="card-body" id="chatBox" style="height: 400px; overflow-y: auto;">
+      <p class="text-muted">Start a conversation with your AI assistant.</p>
+    </div>
+    <div class="card-footer">
+      <form id="aiForm">
+        {% csrf_token %}
+        <div class="input-group">
+          <input type="text" name="message" id="aiMessage" class="form-control" placeholder="Type your message..." required>
+          <button type="submit" class="btn btn-primary">Send</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById("aiForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  const input = document.getElementById("aiMessage");
+  const chatBox = document.getElementById("chatBox");
+  const message = input.value.trim();
+  if (!message) return;
+
+  chatBox.innerHTML += `<p><strong>You:</strong> ${message}</p>`;
+  input.value = "";
+
+  const response = await fetch("{% url 'ai_response' %}", {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value,
+      "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: new URLSearchParams({ message })
+  });
+
+  const data = await response.json();
+  if (data.reply) {
+    chatBox.innerHTML += `<p><strong>AI:</strong> ${data.reply}</p>`;
+  } else {
+    chatBox.innerHTML += `<p class="text-danger"><strong>Error:</strong> ${data.error}</p>`;
+  }
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+});
+</script>
+{% endblock %}

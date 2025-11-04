@@ -19,4 +19,7 @@ urlpatterns = [
     path('invite/accept/<str:token>/', views.accept_invite, name='accept_invite'),
     path('ajax_generate_private_invite/', views.ajax_generate_private_invite, name='ajax_generate_private_invite'),
     path('invite/private/<str:token>/', views.accept_private_invite, name='accept_private_invite'),
+
+    path("ai-chat/", views.ai_chat, name="ai_chat"),
+    path("ai-response/", views.ai_response, name="ai_response"),  # handles AI replies
 ]
