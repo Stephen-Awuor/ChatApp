@@ -1,0 +1,18 @@
+{% extends 'base/chat_base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-danger text-white">
+      <h5 class="mb-0">Delete Group</h5>
+    </div>
+    <div class="card-body text-center">
+      <p>Are you sure you want to delete<strong>{{ room.name }}</strong>?</p>
+      <form method="POST">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Yes, Delete Group</button>
+        <a href="{% url 'group_info' room.id %}" class="btn btn-secondary">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

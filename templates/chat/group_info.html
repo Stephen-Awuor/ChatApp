@@ -10,7 +10,7 @@
 {% endif %}
 
     <!-- Header -->
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+<div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
   <h5 class="mb-0">
     <i class="fa fa-users me-2"></i>{{ room.name|title }}
   </h5>
@@ -59,12 +59,10 @@
           <a href="{% url 'add-member' room.id %}" class="btn btn-success btn-sm">
             <i class="fa fa-user-plus me-1"></i> Add
           </a>
-          <form action="{% url 'delete-group' room.id %}" method="POST">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-danger btn-sm">
-              <i class="fa fa-trash me-1"></i> Delete Group
-            </button>
-          </form>
+          <a href="{% url 'delete-group' room.id %}" class="btn btn-danger btn-sm">
+            <i class="fa fa-trash me-1"></i> Delete Group
+          </a>
+
         </div>
       {% else %}
         <a href="{% url 'leave-group' room.id %}" class="btn btn-warning btn-sm"><i class="fa fa-sign-out-alt me-1"></i> Leave Group</a>

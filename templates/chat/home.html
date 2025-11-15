@@ -1,6 +1,16 @@
 {% extends 'base/chat_base.html' %}
 {% block content %}
 
+{% if messages %}
+  <div class="container mt-3">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
 
 
 <!-- MAIN -->
@@ -52,7 +62,7 @@
           <i class="fa fa-comments" style="font-size: 48px;"></i>
           <p class="mt-3"> Select a group or a chat to start messaging |
           <a href="{% url 'ai_chat' %}" class="text-primary text-decoration-none fw-semibold">
-          Ask AI
+          Ask Steve_AI
           </a>
           </p>
         </div>

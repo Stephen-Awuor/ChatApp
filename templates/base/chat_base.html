@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}MyChat{% endblock %}</title>
 
-  <!-- Bootstrap (layout) + Font Awesome -->
+  <!-- Bootstrap + Font Awesome -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
@@ -20,8 +20,8 @@
       display: inline-block;
       margin-right: 6px;
     }
-    .online { background-color: #28a745; }  /* green */
-    .offline { background-color: #6c757d; } /* gray */
+    .online { background-color: #28a745; }
+    .offline { background-color: #6c757d; }
   </style>
 </head>
 <body>
@@ -30,10 +30,9 @@
 <nav class="navbar navbar-expand-lg" style="background: linear-gradient(90deg,#56d8e4,#a0e9ff);">
   <div class="container-fluid">
     <a class="navbar-brand text-dark fw-bold" href="{% url 'home' %}">MyChat</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain" aria-controls="navMain" aria-expanded="false" aria-label="Toggle navigation">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
       <span class="navbar-toggler-icon"><i class="fa fa-bars"></i></span>
     </button>
-
     <div class="d-flex gap-3">
       <a class="nav-link text-dark" href="{% url 'profile' %}"><i class="fa fa-user me-1"></i>{{ user.username }}</a>
       <a class="nav-link text-dark" href="{% url 'logout' %}"><i class="fa fa-sign-out-alt me-1"></i>Logout</a>
@@ -41,7 +40,7 @@
   </div>
 </nav>
 
-<!-- MAIN CONTENT AREA -->
+<!-- MAIN CONTENT -->
 <div class="container-fluid p-0 chat-container">
   <div class="row g-0" style="height:100%;">
 
@@ -49,98 +48,99 @@
     <div class="col-md-4 col-lg-3 sidebar border-end p-3">
       {% block sidebar %}
 
-      <!-- GROUP CHATS -->
+      <!-- GROUPS SECTION -->
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="mb-0">My Groups</h6>
+        <div class="flex-grow-4 mx-3">
+          <input type="text" id="groupSearch" class="form-control form-control-sm" placeholder="Search groups...">
+        </div>
         <a href="{% url 'new_group' %}" class="btn btn-sm btn-success">+ Group</a>
       </div>
 
-      <ul class="list-group mb-4">
-        {% for room in rooms %}
-          {% if room.room_type == 'group' %}
-            <li class="list-group-item">
-              <a href="{% url 'group_chat' room.id %}" class="text-decoration-none d-block">
-                <strong>{{ room.name }}</strong>
-                <div class="small text-muted">Members: {{ room.participants.count }}</div>
-              </a>
-            </li>
-          {% endif %}
-        {% empty %}
-          <li class="list-group-item text-center text-muted">No groups yet</li>
-        {% endfor %}
-      </ul>
-
-      <!-- USER LIST -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h6 class="mb-0">My Chats</h6>
-  <button id="generatePrivateInvite" class="btn btn-sm btn-success">+ Invite</button>
-</div>
-
-
-
-<!-- Private Invite Modal -->
-<div class="modal fade" id="privateInviteModal" tabindex="-1" aria-labelledby="privateInviteModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-success text-white">
-        <h5 class="modal-title" id="privateInviteModalLabel">Invite Someone (Private Chat)</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      <div id="groupsList">
+        <ul class="list-group mb-4">
+          {% for room in rooms %}
+            {% if room.room_type == 'group' %}
+              <li class="list-group-item">
+                <a href="{% url 'group_chat' room.id %}" class="text-decoration-none d-block">
+                  <strong>{{ room.name }}</strong>
+                  <div class="small text-muted">Members: {{ room.participants.count }}</div>
+                </a>
+              </li>
+            {% endif %}
+          {% empty %}
+            <li class="list-group-item text-center text-muted">No groups yet</li>
+          {% endfor %}
+        </ul>
       </div>
-      <div class="modal-body text-center">
-        <p>Click below to generate a private chat invite link:</p>
-        <button id="generatePrivateInviteBtn" class="btn btn-success">Generate Invite Link</button>
 
-        <div id="privateInviteResult" class="mt-3" style="display:none;">
-          <input type="text" id="privateInviteLink" class="form-control mb-2" readonly>
-          <small class="text-muted">Invite Code: <span id="privateInviteCode"></span></small><br>
-          <button id="copyPrivateInviteButton" class="btn btn-primary mt-2" onclick="copyPrivateInviteLink()">Copy Link</button>
+      <!-- CHATS SECTION -->
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0">My Chats</h6>
+        <div class="flex-grow-4 mx-3">
+          <input type="text" id="chatSearch" class="form-control form-control-sm" placeholder="Search chats...">
+        </div>
+        <button id="generatePrivateInvite" class="btn btn-sm btn-success">+ Invite</button>
+      </div>
+
+      <!-- Private Invite Modal -->
+      <div class="modal fade" id="privateInviteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+              <h5 class="modal-title">Invite Someone (Private Chat)</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+              <p>Click below to generate a private chat invite link:</p>
+              <button id="generatePrivateInviteBtn" class="btn btn-success">Generate Invite Link</button>
+              <div id="privateInviteResult" class="mt-3" style="display:none;">
+                <input type="text" id="privateInviteLink" class="form-control mb-2" readonly>
+                <small class="text-muted">Invite Code: <span id="privateInviteCode"></span></small><br>
+                <button id="copyPrivateInviteButton" class="btn btn-primary mt-2" onclick="copyPrivateInviteLink()">Copy Link</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-</div>
 
+      <div id="chatsList">
+        <ul class="list-group">
+          {% for u in users %}
+            {% if u != request.user %}
+              <li class="list-group-item">
+                <a href="{% url 'start_chat' u.username %}" class="text-decoration-none d-flex justify-content-between align-items-center">
+                  <div class="d-flex align-items-center">
+                    <span class="status-dot {% if u.is_online %}online{% else %}offline{% endif %}" data-user-id="{{ u.id }}"></span>
+                    <span class="ms-2 text-dark fw-semibold">{{ u.username }}</span>
+                  </div>
+                  <div class="small text-muted">Chat</div>
+                </a>
+              </li>
+            {% endif %}
+          {% empty %}
+            <li class="list-group-item text-center text-muted">No other users</li>
+          {% endfor %}
+        </ul>
+      </div>
 
-<ul class="list-group">
-  {% for u in users %}
-    {% if u != request.user %}
-      <li class="list-group-item">
-        <a href="{% url 'start_chat' u.username %}" 
-           class="text-decoration-none d-flex justify-content-between align-items-center">
-          <div class="d-flex align-items-center">
-            <!-- ✅ Online/offline indicator -->
-            <span class="status-dot {% if u.is_online %}online{% else %}offline{% endif %}" 
-                  data-user-id="{{ u.id }}"></span>
-            <!-- ✅ Username now appears -->
-            <span class="ms-2 text-dark fw-semibold">{{ u.username }}</span>
-          </div>
-          <div class="small text-muted">Chat</div>
-        </a>
-      </li>
-    {% endif %}
-  {% empty %}
-    <li class="list-group-item text-center text-muted">No other users</li>
-  {% endfor %}
-    </ul>
       {% endblock %}
 
-<ul class="list-group">
-  <li class="list-group-item">
-    <a href="{% url 'ai_chat' %}" class="text-decoration-none d-block">
-      <i class="fa fa-robot me-2 text-primary"></i> Smart Assistant
-    </a>
-  </li>
-</ul>
-
+      <ul class="list-group mt-3">
+        <li class="list-group-item">
+          <a href="{% url 'ai_chat' %}" class="text-decoration-none d-block">
+            <i class="fa fa-robot me-2 text-primary"></i> Steve_AI
+          </a>
+        </li>
+      </ul>
     </div>
 
-    <!-- MAIN CHAT WINDOW -->
+    <!-- MAIN CHAT AREA -->
     <div class="col-md-8 col-lg-9 chat-window">
-
       {% block content %}
       <div class="d-flex flex-column justify-content-center align-items-center h-100 text-muted">
         <i class="fa fa-comments" style="font-size: 48px;"></i>
-        <p class="mt-3">Select a group or a chat to start messaging</p>
+        <p class="mt-3">Select a group or chat to start messaging</p>
       </div>
       {% endblock %}
     </div>
@@ -148,98 +148,128 @@
   </div>
 </div>
 
-<!-- Scripts -->
+<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
+  // Scroll chat box to bottom
   (function() {
     const box = document.getElementById('messagesBox');
     if (box) box.scrollTop = box.scrollHeight;
   })();
 
-  // Establish WebSocket connection for online/offline user updates
-  const onlineSocket = new WebSocket(
-    'ws://' + window.location.host + '/ws/online_status/'
-  );
-
-  // When a user’s status updates, update the UI
+  // WebSocket for online/offline status
+  const onlineSocket = new WebSocket('ws://' + window.location.host + '/ws/online_status/');
   onlineSocket.onmessage = function(e) {
     const data = JSON.parse(e.data);
-    const userId = data.user_id;
-    const isOnline = data.is_online;
-
-    // Find the user's status dot
-    const dot = document.querySelector(`[data-user-id="${userId}"]`);
+    const dot = document.querySelector(`[data-user-id="${data.user_id}"]`);
     if (dot) {
-      dot.classList.toggle("online", isOnline);
-      dot.classList.toggle("offline", !isOnline);
+      dot.classList.toggle("online", data.is_online);
+      dot.classList.toggle("offline", !data.is_online);
     }
   };
 
-  onlineSocket.onclose = function(e) {
-    console.error('Online status socket closed unexpectedly');
-  };
-
-  // 1️⃣ Connect to your main presence WebSocket
-  const presenceSocket = new WebSocket(
-    'ws://' + window.location.host + '/ws/online_status/'
-  );
-
-  // 2️⃣ Handle messages from the backend
-  presenceSocket.onmessage = function (e) {
-    const data = JSON.parse(e.data);
-    const userId = data.user_id;
-    const isOnline = data.is_online;
-
-    // Find that user's status dot
-    const dot = document.getElementById(`status-${userId}`);
-    if (dot) {
-      dot.classList.remove('online', 'offline');
-      dot.classList.add(isOnline ? 'online' : 'offline');
-    }
-  };
-
-  presenceSocket.onclose = function (e) {
-    console.error('Presence socket closed unexpectedly');
-  };
-
-  //For private chat invite
+  // Private Invite Modal
   document.getElementById('generatePrivateInvite').addEventListener('click', function() {
-  const modal = new bootstrap.Modal(document.getElementById('privateInviteModal'));
-  modal.show();
-});
+    const modal = new bootstrap.Modal(document.getElementById('privateInviteModal'));
+    modal.show();
+  });
 
-// Generate the private chat invite
-document.getElementById("generatePrivateInviteBtn").addEventListener("click", function() {
-  fetch("{% url 'ajax_generate_private_invite' %}")
-    .then(response => response.json())
-    .then(data => {
-      if (data.error) {
-        alert(data.error);
-      } else {
-        document.getElementById("privateInviteLink").value = data.invite_link;
-        document.getElementById("privateInviteCode").textContent = data.invite_code;
-        document.getElementById("privateInviteResult").style.display = 'block';
-      }
-    })
-    .catch(err => alert("Error generating invite: " + err));
-});
+  document.getElementById("generatePrivateInviteBtn").addEventListener("click", function() {
+    fetch("{% url 'ajax_generate_private_invite' %}")
+      .then(response => response.json())
+      .then(data => {
+        if (!data.error) {
+          document.getElementById("privateInviteLink").value = data.invite_link;
+          document.getElementById("privateInviteCode").textContent = data.invite_code;
+          document.getElementById("privateInviteResult").style.display = 'block';
+        } else alert(data.error);
+      });
+  });
 
-// Copy link
-function copyPrivateInviteLink() {
-  const input = document.getElementById('privateInviteLink');
-  input.select();
-  navigator.clipboard.writeText(input.value);
-  const btn = document.getElementById('copyPrivateInviteButton');
-  btn.textContent = "Copied!";
-  btn.classList.remove('btn-primary');
-  btn.classList.add('btn-success');
-  setTimeout(() => {
-    btn.textContent = "Copy Link";
-    btn.classList.remove('btn-success');
-    btn.classList.add('btn-primary');
-  }, 2000);
-}
+  function copyPrivateInviteLink() {
+    const input = document.getElementById('privateInviteLink');
+    input.select();
+    navigator.clipboard.writeText(input.value);
+    const btn = document.getElementById('copyPrivateInviteButton');
+    btn.textContent = "Copied!";
+    btn.classList.replace('btn-primary', 'btn-success');
+    setTimeout(() => {
+      btn.textContent = "Copy Link";
+      btn.classList.replace('btn-success', 'btn-primary');
+    }, 2000);
+  }
+
+  // 🔍 Live Search (Groups + Chats)
+  // 🔍 Live Search (Groups + Chats)
+document.addEventListener("DOMContentLoaded", () => {
+  const groupInput = document.getElementById("groupSearch");
+  const chatInput = document.getElementById("chatSearch");
+  const groupsList = document.getElementById("groupsList");
+  const chatsList = document.getElementById("chatsList");
+
+  function debounce(fn, delay) {
+    let timeout;
+    return (...args) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => fn(...args), delay);
+    };
+  }
+
+  // 🔹 Search Groups
+  const searchGroups = debounce((query) => {
+    fetch(`/search/groups/?q=${encodeURIComponent(query)}`)
+      .then(res => res.json())
+      .then(data => {
+        let html = "";
+        if (data.groups.length === 0) {
+          html = "<li class='list-group-item text-center text-muted'>No groups found</li>";
+        } else {
+          data.groups.forEach(g => {
+            html += `
+              <li class="list-group-item">
+                <a href="/room/${g.id}/" class="text-decoration-none d-block">
+                  <strong>${g.name}</strong>
+                  <div class="small text-muted">Members: ${g.members}</div>
+                </a>
+              </li>`;
+          });
+        }
+        groupsList.innerHTML = `<ul class="list-group mb-4">${html}</ul>`;
+      });
+  }, 300);
+
+  // 🔹 Search Private Chats
+  const searchChats = debounce((query) => {
+    fetch(`/search/chats/?q=${encodeURIComponent(query)}`)
+      .then(res => res.json())
+      .then(data => {
+        let html = "";
+        if (data.chats.length === 0) {
+          html = "<li class='list-group-item text-center text-muted'>No chats found</li>";
+        } else {
+          data.chats.forEach(c => {
+            html += `
+              <li class="list-group-item">
+                <a href="/start_chat/${c.username}/" class="text-decoration-none d-flex justify-content-between align-items-center">
+                  <div class="d-flex align-items-center">
+                    <span class="status-dot offline"></span>
+                    <span class="ms-2 text-dark fw-semibold">${c.username}</span>
+                  </div>
+                  <div class="small text-muted">Chat</div>
+                </a>
+              </li>`;
+          });
+        }
+        chatsList.innerHTML = `<ul class="list-group">${html}</ul>`;
+      });
+  }, 300);
+
+  groupInput.addEventListener("input", e => searchGroups(e.target.value));
+  chatInput.addEventListener("input", e => searchChats(e.target.value));
+});
 
 </script>
+
 </body>
 </html>

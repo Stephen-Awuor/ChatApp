@@ -22,4 +22,8 @@ urlpatterns = [
 
     path("ai-chat/", views.ai_chat, name="ai_chat"),
     path("ai-response/", views.ai_response, name="ai_response"),  # handles AI replies
+
+    path("search/groups/", views.search_groups, name="search_groups"),
+    path("search/chats/", views.search_chats, name="search_chats"),
+
 ]

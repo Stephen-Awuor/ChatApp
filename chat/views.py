@@ -11,25 +11,46 @@ import uuid
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
+from django.views.decorators.http import require_GET
+
 
 load_dotenv()  # Load .env values
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 User = get_user_model()
 
-
 @login_required
 def home(request):
-    # Get all group chatrooms where the user is a participant
-    user_rooms = ChatRoom.objects.filter(room_type='group', participants=request.user)
-    # Get all other users for private chats
+    return render(request, "chat/home.html")
+
+@login_required
+@require_GET
+def search_groups(request):
+    query = request.GET.get("q", "").strip()
+    rooms = ChatRoom.objects.filter(room_type='group', participants=request.user)
+
+    if query:
+        rooms = rooms.filter(name__icontains=query)
+
+    data = [
+        {"id": r.id, "name": r.name, "members": r.participants.count()}
+        for r in rooms
+    ]
+    return JsonResponse({"groups": data})
+
+@login_required
+@require_GET
+def search_chats(request):
+    query = request.GET.get("q", "").strip()
     users = User.objects.exclude(id=request.user.id)
-    context = {
-        "rooms": user_rooms,  # Only group chats appear in sidebar
-        "users": users,       # All users for starting private chats
-        "active_chat": None,
-        "messages": None
-    }
-    return render(request, "chat/home.html", context)
+
+    if query:
+        users = users.filter(username__icontains=query)
+
+    data = [
+        {"username": u.username}
+        for u in users
+    ]
+    return JsonResponse({"chats": data})
 
 @login_required
 def create_group(request):
@@ -194,14 +215,8 @@ def delete_group(request, room_id):
 @login_required
 def ajax_generate_invite(request, room_id):
     room = get_object_or_404(ChatRoom, id=room_id)
+    invite = ChatInvite.objects.create(room=room, invited_by=request.user)
 
-    # Create a new invite
-    invite = ChatInvite.objects.create(
-        room=room,
-        invited_by=request.user
-    )
-
-    # Build invite link
     invite_link = request.build_absolute_uri(
         reverse('accept_invite', args=[str(invite.token)])
     )
@@ -213,16 +228,23 @@ def ajax_generate_invite(request, room_id):
 
 @login_required
 def accept_invite(request, token):
+    # Get invite (whether or not user came from redirect)
     invite = get_object_or_404(ChatInvite, token=token, is_active=True)
     room = invite.room
 
-    # Add user to the room
-    room.participants.add(request.user)
+    # ✅ Add the user to participants if not already
+    if request.user not in room.participants.all():
+        room.participants.add(request.user)
+        messages.success(request, f"You’ve joined {room.name}!")
+    else:
+        messages.info(request, f"You are already a member of {room.name}.")
+
+    # ✅ Deactivate the invite AFTER successful join
     invite.is_active = False
     invite.save()
 
-    messages.success(request, f"You’ve joined {room.name}!")
-    return redirect('group_info', room_id=room.id)
+    # Redirect straight to group chat page
+    return redirect('group_chat', room_id=room.id)
 
 @login_required
 def ajax_generate_private_invite(request):

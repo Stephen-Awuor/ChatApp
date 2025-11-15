@@ -3,10 +3,10 @@
 <div class="container py-4">
   <div class="card shadow-sm">
     <div class="card-header bg-primary text-white">
-      <h5 class="mb-0"><i class="fa fa-robot me-2"></i>Smart Assistant</h5>
+      <h5 class="mb-0"><i class="fa fa-robot me-2"></i>Chat with Steve_AI</h5>
     </div>
     <div class="card-body" id="chatBox" style="height: 400px; overflow-y: auto;">
-      <p class="text-muted">Start a conversation with your AI assistant.</p>
+      <p class="text-muted">Start a conversation with Steve_AI.</p>
     </div>
     <div class="card-footer">
       <form id="aiForm">
@@ -42,7 +42,7 @@ document.getElementById("aiForm").addEventListener("submit", async function(e) {
 
   const data = await response.json();
   if (data.reply) {
-    chatBox.innerHTML += `<p><strong>AI:</strong> ${data.reply}</p>`;
+    chatBox.innerHTML += `<p><strong>Steve AI:</strong> ${data.reply}</p>`;
   } else {
     chatBox.innerHTML += `<p class="text-danger"><strong>Error:</strong> ${data.error}</p>`;
   }
