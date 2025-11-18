@@ -105,24 +105,40 @@
       </div>
 
       <div id="chatsList">
-        <ul class="list-group">
-          {% for u in users %}
+    <ul class="list-group">
+        {% for u in users %}
             {% if u != request.user %}
-              <li class="list-group-item">
-                <a href="{% url 'start_chat' u.username %}" class="text-decoration-none d-flex justify-content-between align-items-center">
-                  <div class="d-flex align-items-center">
-                    <span class="status-dot {% if u.is_online %}online{% else %}offline{% endif %}" data-user-id="{{ u.id }}"></span>
-                    <span class="ms-2 text-dark fw-semibold">{{ u.username }}</span>
-                  </div>
-                  <div class="small text-muted">Chat</div>
-                </a>
-              </li>
+                <li class="list-group-item">
+                    <a href="{% url 'start_chat' u.username %}" 
+                       class="text-decoration-none d-flex justify-content-between align-items-center">
+
+                        <div class="d-flex align-items-center">
+
+                            <!-- Status dot -->
+                            <span class="status-dot {% if u.is_online %}online{% else %}offline{% endif %} ms-2"
+                                  data-user-id="{{ u.id }}"></span>
+
+                            <!-- Avatar -->
+                            <img src="{% if u.avatar %}{{ u.avatar.url }}{% else %}{% static 'default-avatar.jpeg' %}{% endif %}"
+                                 class="rounded-circle"
+                                 width="40"
+                                 height="40"
+                                 style="object-fit: cover;"
+                                 alt="avatar">
+
+                            <!-- Username -->
+                            <span class="ms-2 text-dark fw-semibold">{{ u.username }}</span>
+                        </div>
+
+                        <div class="small text-muted">Chat</div>
+                    </a>
+                </li>
             {% endif %}
-          {% empty %}
+        {% empty %}
             <li class="list-group-item text-center text-muted">No other users</li>
-          {% endfor %}
-        </ul>
-      </div>
+        {% endfor %}
+    </ul>
+</div>
 
       {% endblock %}
 
