@@ -152,19 +152,21 @@ def view_group_info(request, room_id):
 @login_required
 def leave_group(request, room_id):
     room = get_object_or_404(ChatRoom, id=room_id, room_type='group')
-    user = request.user
 
-    if user == room.created_by:
-        messages.error(request, "Group admin cannot leave the group. You can delete it instead.")
-        return redirect('group_info', room_id=room.id)
+    if request.method == "GET":
+        # show confirmation page
+        return render(request, 'chat/confirm_leave_group.html', {'room': room})
 
-    if user in room.participants.all():
+    # POST = actually leave group
+    if request.method == "POST":
+        user = request.user
+        if user == room.created_by:
+            messages.error(request, "Group admin cannot leave the group.")
+            return redirect('group_info', room_id=room.id)
+
         room.participants.remove(user)
-        messages.success(request, f"You have left the group '{room.name}'.")
+        messages.success(request, f"You left {room.name}.")
         return redirect('home')
-    else:
-        messages.warning(request, "You are not a member of this group.")
-    return redirect('home')
 
 @login_required
 def add_member(request, room_id):
