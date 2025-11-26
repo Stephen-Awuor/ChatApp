@@ -203,16 +203,26 @@ def remove_member(request, room_id, user_id):
 def delete_group(request, room_id):
     room = get_object_or_404(ChatRoom, id=room_id, room_type='group')
 
+    # Only admin can delete
     if request.user != room.created_by:
         messages.error(request, "Only the group admin can delete the group.")
         return redirect('group_info', room_id=room.id)
 
+    # 🔥 Prevent deletion if other participants still exist
+    remaining_participants = room.participants.exclude(id=room.created_by.id)
+
+    if remaining_participants.exists():
+        messages.error(request, "You must remove all members before deleting the group.")
+        return redirect('group_info', room_id=room.id)
+
+    # If confirmed, delete group
     if request.method == 'POST':
         room.delete()
         messages.success(request, "Group deleted successfully.")
         return redirect('home')
 
     return render(request, 'chat/confirm_delete_group.html', {'room': room})
+
 
 @login_required
 def ajax_generate_invite(request, room_id):
